@@ -1,0 +1,69 @@
+# Rider IDE
+.idea/
+*.iml
+
+# ASP.NET Core
+bin/
+obj/
+out/
+*.user
+*.lock.json
+*.db
+*.cache
+*.pdb
+
+# Logs
+*.log
+logs/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Visual Studio
+.vscode/
+.vs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# User-specific files
+*.suo
+*.user
+*.rsuser
+*.vcxproj.user
+*.opendb
+
+# Rider settings
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/vcs.xml
+
+# Build and deploy
+publish/
+*.PublishProfiles/
+
+# Resharper
+_ReSharper.*
+*.DotSettings.user
+*.DotSettings
+
+# JetBrains Rider
+.idea/
+.idea/modules.xml
+.idea/.name
+.idea/.workspace
+.idea/usage.statistics.xml
+.idea/vcs.xml
+.idea/workspace.xml
+
+# Configuration files
+appsettings*.json
