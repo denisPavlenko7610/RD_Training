@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1.csproj", "{053993EC-8AE0-4ACA-8BFF-70B32F1F1A84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RD_Training", "RD_Training.csproj", "{053993EC-8AE0-4ACA-8BFF-70B32F1F1A84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

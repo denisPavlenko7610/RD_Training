@@ -1,4 +1,4 @@
-namespace WebApplication1;
+namespace RD_Training;
 
 public class Program
 {

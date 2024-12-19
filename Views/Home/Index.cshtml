@@ -1,8 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Code Submission";
+    var code = ViewData["Code"]?.ToString() ?? "";
+    var input = ViewData["Input"]?.ToString() ?? "";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Submit Your C# Code</h1>
+
+<form method="post" asp-action="RunCode">
+    <label for="code">Enter Your Code:</label><br>
+    <textarea name="code" rows="10" cols="50">@code</textarea><br><br>
+
+    <label for="input">Enter Input for Code:</label><br>
+    <textarea name="input" rows="5" cols="50">@input</textarea><br><br>
+
+    <input type="submit" value="Run Code">
+</form>
+
+<hr>
+
+@if (ViewData["Result"] != null)
+{
+    <h3>Execution Result:</h3>
+    <pre>@ViewData["Result"]</pre>
+}
