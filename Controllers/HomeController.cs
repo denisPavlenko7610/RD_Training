@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,21 +13,21 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        // Initialize ViewData to retain input after submission
-        ViewData["Code"] = "";
-        ViewData["Input"] = "";
+        ViewData["CSharpCode"] = "";
+        ViewData["CSharpInput"] = "";
+        ViewData["CppCode"] = "";
+        ViewData["CppInput"] = "";
         return View();
     }
 
     [HttpPost]
-    public async Task<IActionResult> RunCode(string code, string input)
+    public async Task<IActionResult> RunCSharpCode(string code, string input)
     {
-        // Step 1: Null check for code and input
         if (string.IsNullOrEmpty(code))
         {
-            ViewData["Result"] = "Code cannot be empty!";
-            ViewData["Code"] = code; // Retain code input
-            ViewData["Input"] = input; // Retain input field
+            ViewData["CSharpResult"] = "Code cannot be empty!";
+            ViewData["CSharpCode"] = code;
+            ViewData["CSharpInput"] = input;
             return View("Index");
         }
 
@@ -35,10 +36,19 @@ public class HomeController : Controller
             input = string.Empty;
         }
 
-        // Step 2: Build the script code dynamically
-        string scriptCode = $@"
+        string scriptCode;
+        if (code.Contains("class Program") && code.Contains("static void Main"))
+        {
+            // Full program structure
+            scriptCode = code;
+        }
+        else
+        {
+            // Simple script snippet
+            scriptCode = $@"
 using System;
 using System.IO;
+
 public class UserCode {{
     public static string Run(string input) {{
         using (var sw = new StringWriter())
@@ -58,10 +68,10 @@ public class UserCode {{
 }}
 return UserCode.Run(""{input.Replace("\"", "\\\"")}"");
 ";
+        }
 
         try
         {
-            // Step 3: Execute the code using Roslyn
             var result = await CSharpScript.EvaluateAsync<string>(
                 scriptCode,
                 ScriptOptions.Default
@@ -71,27 +81,125 @@ return UserCode.Run(""{input.Replace("\"", "\\\"")}"");
                     .WithImports("System", "System.Linq", "System.IO")
             );
 
-            // Step 4: Return the result
-            ViewData["Result"] = result;
-            ViewData["Code"] = code; // Retain code input
-            ViewData["Input"] = input; // Retain input field
+            ViewData["CSharpResult"] = result;
+            ViewData["CSharpCode"] = code;
+            ViewData["CSharpInput"] = input;
             return View("Index");
         }
         catch (CompilationErrorException ex)
         {
-            // Handle errors from the compilation process
-            ViewData["Result"] = $"Compilation Failed:\n{string.Join("\n", ex.Diagnostics)}";
-            ViewData["Code"] = code; // Retain code input
-            ViewData["Input"] = input; // Retain input field
+            ViewData["CSharpResult"] = $"Compilation Failed:\n{string.Join("\n", ex.Diagnostics)}";
+            ViewData["CSharpCode"] = code;
+            ViewData["CSharpInput"] = input;
             return View("Index");
         }
         catch (Exception ex)
         {
-            // Catch any other unexpected errors
-            ViewData["Result"] = $"An error occurred: {ex.Message}";
-            ViewData["Code"] = code; // Retain code input
-            ViewData["Input"] = input; // Retain input field
+            ViewData["CSharpResult"] = $"An error occurred: {ex.Message}";
+            ViewData["CSharpCode"] = code;
+            ViewData["CSharpInput"] = input;
             return View("Index");
+        }
+    }
+
+    [HttpPost]
+    public IActionResult RunCppCode(string code, string input)
+    {
+        if (string.IsNullOrEmpty(code))
+        {
+            ViewData["CppResult"] = "Code cannot be empty!";
+            ViewData["CppCode"] = code;
+            ViewData["CppInput"] = input;
+            return View("Index");
+        }
+
+        if (string.IsNullOrEmpty(input))
+        {
+            input = string.Empty;
+        }
+
+        string cppCode = code.Contains("int main") ? code : $@"
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {{
+    string input = ""{input.Replace("\"", "\\\"")}"";
+    {code}
+    return 0;
+}}
+";
+
+        string cppFileName = Path.GetTempFileName() + ".cpp";
+        string exeFileName = Path.ChangeExtension(cppFileName, ".exe");
+        System.IO.File.WriteAllText(cppFileName, cppCode);
+
+        try
+        {
+            Process compileProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "g++",
+                    Arguments = $"-o \"{exeFileName}\" \"{cppFileName}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            compileProcess.Start();
+            string compileOutput = compileProcess.StandardOutput.ReadToEnd();
+            string compileErrors = compileProcess.StandardError.ReadToEnd();
+            compileProcess.WaitForExit();
+
+            if (compileProcess.ExitCode != 0)
+            {
+                ViewData["CppResult"] = $"Compilation Failed:\n{compileErrors}";
+                ViewData["CppCode"] = code;
+                ViewData["CppInput"] = input;
+                return View("Index");
+            }
+
+            Process runProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = exeFileName,
+                    Arguments = input,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            runProcess.Start();
+            string runOutput = runProcess.StandardOutput.ReadToEnd();
+            string runErrors = runProcess.StandardError.ReadToEnd();
+            runProcess.WaitForExit();
+
+            ViewData["CppResult"] = runOutput + runErrors;
+            ViewData["CppCode"] = code;
+            ViewData["CppInput"] = input;
+            return View("Index");
+        }
+        catch (Exception ex)
+        {
+            ViewData["CppResult"] = $"An error occurred: {ex.Message}";
+            ViewData["CppCode"] = code;
+            ViewData["CppInput"] = input;
+            return View("Index");
+        }
+        finally
+        {
+            if (System.IO.File.Exists(cppFileName))
+            {
+                System.IO.File.Delete(cppFileName);
+            }
+            if (System.IO.File.Exists(exeFileName))
+            {
+                System.IO.File.Delete(exeFileName);
+            }
         }
     }
 }

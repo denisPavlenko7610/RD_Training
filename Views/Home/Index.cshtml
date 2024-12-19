@@ -1,25 +1,47 @@
 ﻿@{
     ViewData["Title"] = "Code Submission";
-    var code = ViewData["Code"]?.ToString() ?? "";
-    var input = ViewData["Input"]?.ToString() ?? "";
+    var csharpCode = ViewData["CSharpCode"]?.ToString() ?? "";
+    var csharpInput = ViewData["CSharpInput"]?.ToString() ?? "";
+    var cppCode = ViewData["CppCode"]?.ToString() ?? "";
+    var cppInput = ViewData["CppInput"]?.ToString() ?? "";
 }
 
 <h1>Submit Your C# Code</h1>
 
-<form method="post" asp-action="RunCode">
+<form method="post" asp-action="RunCSharpCode">
     <label for="code">Enter Your Code:</label><br>
-    <textarea name="code" rows="10" cols="50">@code</textarea><br><br>
+    <textarea name="code" rows="10" cols="50">@csharpCode</textarea><br><br>
 
     <label for="input">Enter Input for Code:</label><br>
-    <textarea name="input" rows="5" cols="50">@input</textarea><br><br>
+    <textarea name="input" rows="5" cols="50">@csharpInput</textarea><br><br>
 
     <input type="submit" value="Run Code">
 </form>
 
 <hr>
 
-@if (ViewData["Result"] != null)
+@if (ViewData["CSharpResult"] != null)
 {
     <h3>Execution Result:</h3>
-    <pre>@ViewData["Result"]</pre>
+    <pre>@ViewData["CSharpResult"]</pre>
+}
+
+<h1>Submit Your C++ Code</h1>
+
+<form method="post" asp-action="RunCppCode">
+    <label for="code">Enter Your Code:</label><br>
+    <textarea name="code" rows="10" cols="50">@cppCode</textarea><br><br>
+
+    <label for="input">Enter Input for Code:</label><br>
+    <textarea name="input" rows="5" cols="50">@cppInput</textarea><br><br>
+
+    <input type="submit" value="Run Code">
+</form>
+
+<hr>
+
+@if (ViewData["CppResult"] != null)
+{
+    <h3>Execution Result:</h3>
+    <pre>@ViewData["CppResult"]</pre>
 }
