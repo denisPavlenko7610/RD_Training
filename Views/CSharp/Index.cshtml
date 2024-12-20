@@ -3,6 +3,8 @@
     var taskDescription = ViewData["TaskDescription"]?.ToString() ?? "";
     var taskId = (int)ViewData["TaskId"];
     var isCSharpCorrect = ViewData["IsCSharpCorrect"] as bool?;
+    var csharpCode = ViewData["CSharpCode"]?.ToString() ?? "";
+    var csharpInput = ViewData["CSharpInput"]?.ToString() ?? "";
 }
 
 <h1>C# Task</h1>
@@ -11,12 +13,16 @@
 <form method="post" asp-action="RunCSharpCode">
     <input type="hidden" name="taskId" value="@taskId" />
     <label for="code">Enter Your Code:</label><br>
-    <textarea name="code" rows="10" cols="50"></textarea><br><br>
+    <textarea name="code" rows="10" cols="50">@csharpCode</textarea><br><br>
 
     <label for="input">Enter Input for Code:</label><br>
-    <textarea name="input" rows="5" cols="50"></textarea><br><br>
+    <textarea name="input" rows="5" cols="50">@csharpInput</textarea><br><br>
 
     <input type="submit" value="Run Code">
+</form>
+
+<form method="post" asp-action="Restart">
+    <input type="submit" value="Restart" />
 </form>
 
 <hr>

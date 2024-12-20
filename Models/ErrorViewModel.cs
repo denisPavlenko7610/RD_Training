@@ -1,4 +1,4 @@
-namespace WebApplication1.Models;
+namespace RD_Training.Models;
 
 public class ErrorViewModel
 {

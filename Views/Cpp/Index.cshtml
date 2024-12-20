@@ -1,33 +1,35 @@
 ﻿@{
-    ViewData["Title"] = "C# Task";
+    ViewData["Title"] = "C++ Task";
     var taskDescription = ViewData["TaskDescription"]?.ToString() ?? "";
     var taskId = (int)ViewData["TaskId"];
-    var isCSharpCorrect = ViewData["IsCSharpCorrect"] as bool?;
+    var isCppCorrect = ViewData["IsCppCorrect"] as bool?;
+    var cppCode = ViewData["CppCode"]?.ToString() ?? "";
+    var cppInput = ViewData["CppInput"]?.ToString() ?? "";
 }
 
-<h1>C# Task</h1>
+<h1>C++ Task</h1>
 <p>@taskDescription</p>
 
-<form method="post" asp-action="RunCSharpCode">
+<form method="post" asp-action="RunCppCode">
     <input type="hidden" name="taskId" value="@taskId" />
     <label for="code">Enter Your Code:</label><br>
-    <textarea name="code" rows="10" cols="50"></textarea><br><br>
+    <textarea name="code" rows="10" cols="50">@cppCode</textarea><br><br>
 
     <label for="input">Enter Input for Code:</label><br>
-    <textarea name="input" rows="5" cols="50"></textarea><br><br>
+    <textarea name="input" rows="5" cols="50">@cppInput</textarea><br><br>
 
     <input type="submit" value="Run Code">
 </form>
 
 <hr>
 
-@if (ViewData["CSharpResult"] != null)
+@if (ViewData["CppResult"] != null)
 {
     <h3>Execution Result:</h3>
-    <pre>@ViewData["CSharpResult"]</pre>
-    @if (isCSharpCorrect.HasValue)
+    <pre>@ViewData["CppResult"]</pre>
+    @if (isCppCorrect.HasValue)
     {
-        @if (isCSharpCorrect.Value)
+        @if (isCppCorrect.Value)
         {
             <div style="color: green; font-size: 24px;">&#x25CF;</div> <!-- Green circle -->
         }

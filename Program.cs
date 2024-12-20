@@ -1,35 +1,58 @@
-namespace RD_Training;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using RD_Training.Controllers;
 
-public class Program
+namespace RD_Training
 {
-    public static void Main(string[] args)
+    public class Program
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
-        builder.Services.AddControllersWithViews();
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+        public static void Main(string[] args)
         {
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-        }
+            var builder = WebApplication.CreateBuilder(args);
 
-        app.UseHttpsRedirection();
-        app.UseRouting();
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
 
-        app.UseAuthorization();
+            // Register TaskService
+            builder.Services.AddSingleton<TaskService>();
 
-        app.MapStaticAssets();
-        app.MapControllerRoute(
+            // Register other services
+            builder.Services.AddSingleton<CodeExecutor>();
+            builder.Services.AddSingleton<ResultValidator>();
+
+            // Configure Entity Framework and the database context
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            var app = builder.Build();
+
+            // Initialize the database with seed data
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<ApplicationDbContext>();
+                ApplicationDbContext.DbInitializer.Initialize(context);
+            }
+
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/CSharp/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseRouting();
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
+                pattern: "{controller=CSharp}/{action=Index}/{taskId?}");
 
-        app.Run();
+            app.Run();
+        }
     }
 }
