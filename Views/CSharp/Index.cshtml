@@ -7,39 +7,48 @@
     var csharpInput = ViewData["CSharpInput"]?.ToString() ?? "";
 }
 
-<h1>C# Task</h1>
-<p>@taskDescription</p>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1>C# Task</h1>
+        </div>
+        <div class="card-body">
+            <p class="card-text card-text-style">@taskDescription</p>
 
-<form method="post" asp-action="RunCSharpCode">
-    <input type="hidden" name="taskId" value="@taskId" />
-    <label for="code">Enter Your Code:</label><br>
-    <textarea name="code" rows="10" cols="50">@csharpCode</textarea><br><br>
+            <form method="post" asp-action="RunCSharpCode">
+                <input type="hidden" name="taskId" value="@taskId" />
+                <div class="form-group">
+                    <label for="code">Enter Your Code:</label>
+                    <textarea name="code" class="form-control bg-dark" rows="10">@csharpCode</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="input">Enter Input for Code:</label>
+                    <textarea name="input" class="form-control bg-dark" rows="5">@csharpInput</textarea>
+                </div>
+                <button type="submit" class="button btn">Run Code</button>
+                <button type="submit" formmethod="post" formaction="Restart" class="btn btn-warning text-white">Reset Progress</button>
+            </form>
 
-    <label for="input">Enter Input for Code:</label><br>
-    <textarea name="input" rows="5" cols="50">@csharpInput</textarea><br><br>
+            <hr>
 
-    <input type="submit" value="Run Code">
-</form>
-
-<form method="post" asp-action="Restart">
-    <input type="submit" value="Restart" />
-</form>
-
-<hr>
-
-@if (ViewData["CSharpResult"] != null)
-{
-    <h3>Execution Result:</h3>
-    <pre>@ViewData["CSharpResult"]</pre>
-    @if (isCSharpCorrect.HasValue)
-    {
-        @if (isCSharpCorrect.Value)
-        {
-            <div style="color: green; font-size: 24px;">&#x25CF;</div> <!-- Green circle -->
-        }
-        else
-        {
-            <div style="color: red; font-size: 24px;">&#x25CF;</div> <!-- Red circle -->
-        }
-    }
-}
+            @if (ViewData["CSharpResult"] != null)
+            {
+                <div class="alert alert-info">
+                    <h3>Execution Result:</h3>
+                    <pre>@ViewData["CSharpResult"]</pre>
+                    @if (isCSharpCorrect.HasValue)
+                    {
+                        @if (isCSharpCorrect.Value)
+                        {
+                            <div class="text-success">&#x25CF; Correct</div>
+                        }
+                        else
+                        {
+                            <div class="text-danger">&#x25CF; Incorrect</div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

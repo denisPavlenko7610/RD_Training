@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RD_Training.Models;
 
 public class ApplicationDbContext : DbContext
 {
@@ -9,6 +10,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<UserTaskProgress> UserTaskProgresses { get; set; }
+    public DbSet<UserProgress> UserProgresses { get; set; }
     
     public static class DbInitializer
     {

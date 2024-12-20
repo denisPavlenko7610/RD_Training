@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
+using RD_Training.Models;
 
 namespace RD_Training.Controllers
 {
@@ -24,15 +25,14 @@ namespace RD_Training.Controllers
 
         public async Task<IActionResult> Index(int taskId = 0)
         {
-            // Find the first incomplete task for the user
-            var incompleteTask = await _context.UserTaskProgresses
-                .Where(u => u.UserId == DemoUserId && !u.IsCompleted)
-                .OrderBy(u => u.TaskId)
+            // Retrieve the last completed task ID from the database
+            var userProgress = await _context.UserProgresses
+                .Where(u => u.UserId == DemoUserId)
                 .FirstOrDefaultAsync();
 
-            if (incompleteTask != null)
+            if (userProgress != null)
             {
-                taskId = incompleteTask.TaskId;
+                taskId = userProgress.LastCompletedTaskId + 1;
             }
 
             var task = _taskService.GetCSharpTask(taskId);
@@ -41,7 +41,7 @@ namespace RD_Training.Controllers
                 return RedirectToAction("Complete");
             }
 
-            var userProgress = await _context.UserTaskProgresses
+            var userTaskProgress = await _context.UserTaskProgresses
                 .Where(u => u.UserId == DemoUserId && u.TaskId == taskId)
                 .FirstOrDefaultAsync();
 
@@ -49,7 +49,7 @@ namespace RD_Training.Controllers
             ViewData["TaskId"] = taskId;
             ViewData["CSharpCode"] = "";
             ViewData["CSharpInput"] = "";
-            ViewData["IsCSharpCorrect"] = userProgress?.IsCompleted ?? false;
+            ViewData["IsCSharpCorrect"] = userTaskProgress?.IsCompleted ?? false;
 
             return View();
         }
@@ -80,34 +80,55 @@ namespace RD_Training.Controllers
             ViewData["CSharpResult"] = result;
             ViewData["IsCSharpCorrect"] = isCorrect;
 
-            var userProgress = await _context.UserTaskProgresses
+            var userTaskProgress = await _context.UserTaskProgresses
                 .Where(u => u.UserId == DemoUserId && u.TaskId == taskId)
                 .FirstOrDefaultAsync();
 
-            if (userProgress == null)
+            if (userTaskProgress == null)
             {
-                userProgress = new UserTaskProgress
+                userTaskProgress = new UserTaskProgress
                 {
                     UserId = DemoUserId,
                     TaskId = taskId,
                     IsCompleted = isCorrect
                 };
-                _context.UserTaskProgresses.Add(userProgress);
+                _context.UserTaskProgresses.Add(userTaskProgress);
             }
             else
             {
-                userProgress.IsCompleted = isCorrect;
-                _context.UserTaskProgresses.Update(userProgress);
+                userTaskProgress.IsCompleted = isCorrect;
+                _context.UserTaskProgresses.Update(userTaskProgress);
             }
-
-            await _context.SaveChangesAsync();
 
             if (isCorrect)
             {
+                // Update the last completed task ID in the database
+                var userProgress = await _context.UserProgresses
+                    .Where(u => u.UserId == DemoUserId)
+                    .FirstOrDefaultAsync();
+
+                if (userProgress == null)
+                {
+                    userProgress = new UserProgress
+                    {
+                        UserId = DemoUserId,
+                        LastCompletedTaskId = taskId
+                    };
+                    _context.UserProgresses.Add(userProgress);
+                }
+                else
+                {
+                    userProgress.LastCompletedTaskId = taskId;
+                    _context.UserProgresses.Update(userProgress);
+                }
+
+                await _context.SaveChangesAsync();
+
                 // Redirect to the Index action to check for the next task
-                return RedirectToAction("Index", new { taskId = taskId + 1 });
+                return RedirectToAction("Index");
             }
 
+            await _context.SaveChangesAsync();
             return View("Index");
         }
 
@@ -120,10 +141,19 @@ namespace RD_Training.Controllers
         public async Task<IActionResult> Restart()
         {
             var userProgresses = _context.UserTaskProgresses.Where(u => u.UserId == DemoUserId);
+            var userProgress = await _context.UserProgresses.Where(u => u.UserId == DemoUserId).FirstOrDefaultAsync();
+
+            if (userProgress != null)
+            {
+                userProgress.LastCompletedTaskId = -1;
+                _context.UserProgresses.Update(userProgress);
+            }
+
             _context.UserTaskProgresses.RemoveRange(userProgresses);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index");
+            // Redirect to the Index action to show the first task
+            return RedirectToAction("Index", new { taskId = 0 });
         }
     }
 }
